@@ -1,0 +1,26 @@
+# Python environments and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Build and coverage outputs
+build/
+dist/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Downloaded models, input data, and generated outputs
+/models/*
+!/models/.gitkeep
+/data/*
+!/data/.gitkeep
+/outputs/*
+!/outputs/.gitkeep
+
+# OS metadata
+.DS_Store
+Thumbs.db
