@@ -1,0 +1,15 @@
+[project]
+name = "gosz_hand-motion-tracker"
+version = "0.1.0"
+description = "Hand and finger motion tracking for piano performances."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "mediapipe==1.0.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "hand_motion_tracker"
