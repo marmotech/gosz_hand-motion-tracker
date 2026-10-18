@@ -19,3 +19,23 @@ uv run --locked python scripts/download_hand_landmarker.py
 - SHA-256: `fbc2a30080c3c557093b5ddfc334698132eb341044ccee322ccf8bcf3607cde1`
 
 モデルファイルはGitの追跡対象外とし、新しいチェックアウトやworktreeでは上記の手順で取得する。
+
+## Hand Landmarkerの動作確認
+
+モデルの取得後、リポジトリのルートで次を実行する。
+
+```console
+uv run --locked python scripts/check_hand_landmarker.py
+```
+
+`models/hand_landmarker.task` を読み込み、CPUでHand Landmarkerを初期化して終了する。
+画像や動画の読み込み、カメラの起動、手の検出は行わない。
+
+成功時には次の2行が表示される。MediaPipe自身のログが併せて表示される場合もある。
+
+```text
+Hand Landmarker initialized.
+Hand Landmarker closed.
+```
+
+モデルがない場合は、モデルの保存先と取得コマンドを表示して終了する。
