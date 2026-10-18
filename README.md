@@ -1,5 +1,64 @@
 # gosz_hand-motion-tracker
 
+MediaPipeでピアノ演奏中の手・指の動きを解析するためのプロジェクト。
+現在は、開発環境の構築とHand Landmarkerの初期化・終了を確認するための基盤を用意している。
+
+## 使用するバージョン
+
+- Python: 3.12.15（`.python-version` で指定）
+- MediaPipe: 1.0.1（`pyproject.toml` で指定）
+- uv: 0.13.0で動作確認済み
+
+動作確認環境はWindows x86-64。
+
+## uvの導入
+
+uvは、Pythonの取得、プロジェクトごとの仮想環境、依存パッケージを管理するツール。
+PCに一度インストールすると、複数のプロジェクトで利用できる。
+
+Windowsでは、PowerShellで次を実行する。
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+macOS・Linuxでは、次を実行する。
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+インストール後はターミナルを開き直し、次のコマンドで利用できることを確認する。
+
+```console
+uv --version
+```
+
+その他の導入方法は[uv公式のインストール手順](https://docs.astral.sh/uv/getting-started/installation/)を参照する。
+
+## 開発環境の構築
+
+リポジトリをまだ取得していない場合は、次を実行する。
+
+```console
+git clone https://github.com/marmotech/gosz_hand-motion-tracker.git
+cd gosz_hand-motion-tracker
+```
+
+取得済みの場合は、そのリポジトリのルート（`pyproject.toml` のあるディレクトリ）に移動する。
+続いて、次のコマンドでPythonを取得し、依存パッケージをインストールする。初回はインターネット接続が必要。
+
+```console
+uv python install 3.12.15
+uv sync --locked
+```
+
+このディレクトリに仮想環境 `.venv/` が作成され、`uv.lock` に記録されたバージョンの依存パッケージが入る。
+以降のスクリプトは `uv run --locked` で実行するため、仮想環境を手動で有効化する必要はない。
+
+新しくworktreeを作った場合も、そのworktreeのルートで同じ2つのコマンドを実行する。
+`.venv/` はworktreeごとに作成され、Gitには追跡されない。
+
 ## Hand Landmarkerモデルの取得
 
 開発環境を構築した後、リポジトリのルートで次を実行する。
