@@ -14,11 +14,29 @@ def main() -> int:
     args = parser.parse_args()
 
     window_name = "Hand Motion Tracker"
+    previous_timestamp_ns = None
     try:
         with CameraCapture(args.camera) as camera:
             print("Camera started. Press Q or Esc in the window to quit.", flush=True)
             for frame in camera.frames():
-                cv2.imshow(window_name, frame.image)
+                interval = "N/A"
+                if previous_timestamp_ns is not None:
+                    interval_ms = (frame.timestamp_ns - previous_timestamp_ns) / 1_000_000
+                    interval = f"{interval_ms:.3f} ms"
+                previous_timestamp_ns = frame.timestamp_ns
+
+                image = frame.image.copy()
+                lines = (
+                    f"Capture timestamp: {frame.timestamp_ns} ns",
+                    f"Frame interval: {interval}",
+                )
+                for index, line in enumerate(lines):
+                    position = (10, 30 + index * 28)
+                    cv2.putText(
+                        image, line, position, cv2.FONT_HERSHEY_SIMPLEX,
+                        0.6, (255, 255, 255), 1, cv2.LINE_AA,
+                    )
+                cv2.imshow(window_name, image)
                 if cv2.waitKey(1) & 0xFF in (ord("q"), ord("Q"), 27):
                     break
                 if cv2.getWindowProperty(window_name, cv2.WND_PROP_VISIBLE) < 1:
