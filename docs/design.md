@@ -125,6 +125,13 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 利用例：`result.left.landmarks[HandLandmark.WRIST]` で左手の手首，`result.left.landmarks[HandLandmark.INDEX_FINGER_TIP]` で人差し指先を取得する．利用前に `result.left is not None` を確認する．
 
+### 検出処理（Issue #6）
+
+- `src/hand_detector.py` の `HandDetector` を `with` で初期化・解放する．`detect(frame: CapturedFrame)` でカメラ画像を検出処理に渡す．
+- CPU・IMAGEモード・最大2手で，画像単位に同期実行する．初版ではMediaPipeの動画モードによる追跡を利用しない．
+- BGR画像をRGBへ変換してMediaPipeに渡す．
+- 手順2では，戻り値はMediaPipeの `HandLandmarkerResult` とする．検出した手ごとの21点の正規化座標とhandednessをそのまま返す．小数pxへの変換と `DetectionResult` への格納は後続手順で実装する．
+
 ## 8. 未決定・検証事項
 
 - 使用するカメラの選定，撮影タイムスタンプを取得できるか
