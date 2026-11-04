@@ -131,6 +131,7 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 - CPU・IMAGEモード・最大2手で，画像単位に同期実行する．初版ではMediaPipeの動画モードによる追跡を利用しない．
 - BGR画像をRGBへ変換してMediaPipeに渡す．
 - 手順2では，戻り値はMediaPipeの `HandLandmarkerResult` とする．検出した手ごとの21点の正規化座標とhandednessをそのまま返す．小数pxへの変換と `DetectionResult` への格納は後続手順で実装する．
+- 手順3では，`_to_pixel_landmarks` で片手の全21点を小数pxの `HandLandmarks` に変換する．各点のxに入力画像の幅，yに高さを掛ける．丸め・画像範囲への切り詰め・表示用変換は行わない．検出結果への組み込みは手順4で行う．
 
 ## 8. 未決定・検証事項
 

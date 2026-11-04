@@ -5,11 +5,26 @@ from pathlib import Path
 import cv2
 import mediapipe as mp
 from mediapipe.tasks.python import BaseOptions, vision
+from mediapipe.tasks.python.components.containers.landmark import NormalizedLandmark
 
 from camera import CapturedFrame
+from detection_types import HandLandmarks, Point2D
 
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "hand_landmarker.task"
+
+
+def _to_pixel_landmarks(
+    landmarks: list[NormalizedLandmark], width: int, height: int
+) -> HandLandmarks:
+    """Convert one hand's normalized coordinates to floating-point image px."""
+    points = []
+    for point in landmarks:
+        x_px = point.x * width
+        y_px = point.y * height
+        points.append(Point2D(x=x_px, y=y_px))
+
+    return HandLandmarks(landmarks=tuple(points))
 
 
 class HandDetector:
