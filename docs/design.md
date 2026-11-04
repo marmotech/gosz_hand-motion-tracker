@@ -127,11 +127,12 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 ### 検出処理（Issue #6）
 
-- `src/hand_detector.py` の `HandDetector` を `with` で初期化・解放する．`detect(frame: CapturedFrame)` でカメラ画像を検出処理に渡す．
+- `src/hand_detector.py` の `HandDetector` を `with` で初期化・解放する．例外が起きた場合も解放する．`detect(frame: CapturedFrame)` は `DetectionResult` を返す．
 - CPU・IMAGEモード・最大2手で，画像単位に同期実行する．初版ではMediaPipeの動画モードによる追跡を利用しない．
 - BGR画像をRGBへ変換してMediaPipeに渡す．
-- 手順2では，戻り値はMediaPipeの `HandLandmarkerResult` とする．検出した手ごとの21点の正規化座標とhandednessをそのまま返す．小数pxへの変換と `DetectionResult` への格納は後続手順で実装する．
-- 手順3では，`_to_pixel_landmarks` で片手の全21点を小数pxの `HandLandmarks` に変換する．各点のxに入力画像の幅，yに高さを掛ける．丸め・画像範囲への切り詰め・表示用変換は行わない．検出結果への組み込みは手順4で行う．
+- `_to_pixel_landmarks` で片手の全21点を小数pxの `HandLandmarks` に変換する．各点のxに入力画像の幅，yに高さを掛ける．丸め・画像範囲への切り詰め・表示用変換は行わない．
+- 左右はhandednessに従って `DetectionResult` に格納する．同じ側の候補が重複した場合はhandednessの信頼度が高い方を採用し，もう一方を反対側と推測しない．
+- 未検出はそのフレームの該当側を `None` とし，過去の座標を検出結果として返さない．元のフレーム取得時刻は未検出時も保持する．実行エラーは呼び出し元へ伝える．
 
 ## 8. 未決定・検証事項
 

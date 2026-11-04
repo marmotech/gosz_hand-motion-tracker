@@ -8,7 +8,7 @@ from mediapipe.tasks.python import BaseOptions, vision
 from mediapipe.tasks.python.components.containers.landmark import NormalizedLandmark
 
 from camera import CapturedFrame
-from detection_types import HandLandmarks, Point2D
+from detection_types import DetectionResult, HandLandmarks, Point2D
 
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "hand_landmarker.task"
@@ -59,14 +59,43 @@ class HandDetector:
         self._landmarker = vision.HandLandmarker.create_from_options(options)
         return self
 
-    def detect(self, frame: CapturedFrame) -> vision.HandLandmarkerResult:
-        """Return MediaPipe's normalized landmarks and handedness for this image."""
+    def detect(self, frame: CapturedFrame) -> DetectionResult:
+        """Return current positions in float px and the original capture time.
+
+        Undetected hands are None. Previous positions are never substituted for
+        the current observation. Inference/runtime errors propagate to callers.
+        """
         if self._landmarker is None:
             raise RuntimeError("Hand detector is not open; use 'with HandDetector(...)'")
 
         rgb = cv2.cvtColor(frame.image, cv2.COLOR_BGR2RGB)
         image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        return self._landmarker.detect(image)
+        result = self._landmarker.detect(image)
+        height, width = frame.image.shape[:2]
+
+        hands: dict[str, HandLandmarks] = {}
+        scores: dict[str, float] = {}
+        for landmarks, categories in zip(
+            result.hand_landmarks, result.handedness, strict=True
+        ):
+            if not categories:
+                continue
+            category = max(categories, key=lambda item: item.score)
+            side = category.category_name
+            if side not in ("Left", "Right"):
+                continue
+            # A duplicate handedness label does not establish the other hand's
+            # identity. Keep the more confident candidate for the same side.
+            if side in scores and category.score <= scores[side]:
+                continue
+            hands[side] = _to_pixel_landmarks(landmarks, width, height)
+            scores[side] = category.score
+
+        return DetectionResult(
+            timestamp_ns=frame.timestamp_ns,
+            left=hands.get("Left"),
+            right=hands.get("Right"),
+        )
 
     def __exit__(self, exc_type: object, exc_value: object, traceback: object) -> None:
         if self._landmarker is not None:
