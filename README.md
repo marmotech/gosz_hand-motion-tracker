@@ -71,7 +71,7 @@ uv run --locked python src/main.py
 映像の左上には取得時刻（`Capture timestamp`、整数ns）と、前フレームからの取得間隔
 （`Frame interval`、ms）を表示する。最初のフレームの取得間隔は `N/A` とする。
 取得時刻は `time.monotonic_ns()` による読み取り成功直後の時刻であり、日時やカメラの撮影時刻ではない。
-現段階ではカメラ映像の表示まで実装しており、手の検出・運動計算は今後この処理に組み込む。
+現段階のアプリはカメラ映像の表示までで、検出モジュールの組み込みと運動計算は今後行う。
 モデルの取得は、現在のアプリの起動には不要。
 
 映像ウィンドウでQまたはEscキーを押すか、ウィンドウを閉じると終了する。
@@ -125,3 +125,21 @@ Hand Landmarker closed.
 ```
 
 モデルがない場合は、モデルの保存先と取得コマンドを表示して終了する。
+
+## 画像からの手の検出確認
+
+モデルの取得後、未反転のテスト画像を用意して次を実行する。
+
+```console
+uv run --locked python scripts/check_hand_detection.py data/example.jpg
+```
+
+`src/hand_detector.py` の `HandDetector` を使い、最大2つの手をCPUで検出する。
+IMAGEモードで画像ごとに同期実行し、画像やカメラ映像の描画は行わない。
+左右の手について、21点の座標をMediaPipe順の配列としてJSONで出力する。
+座標は入力画像の左上原点、右向き+x、下向き+yの小数pxで、未検出の側は `null` になる。
+MediaPipe自身のログが併せて表示される場合もある。
+
+この確認スクリプトの `timestamp_ns` は画像読み込み直後の時刻で、写真の撮影時刻ではない。
+カメラ画像を処理する際は、入力の `CapturedFrame.timestamp_ns` がそのまま結果に引き継がれる。
+検出終了時は、例外が起きた場合もHand Landmarkerを解放する。

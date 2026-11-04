@@ -133,6 +133,7 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 - `_to_pixel_landmarks` で片手の全21点を小数pxの `HandLandmarks` に変換する．各点のxに入力画像の幅，yに高さを掛ける．丸め・画像範囲への切り詰め・表示用変換は行わない．
 - 左右はhandednessに従って `DetectionResult` に格納する．同じ側の候補が重複した場合はhandednessの信頼度が高い方を採用し，もう一方を反対側と推測しない．
 - 未検出はそのフレームの該当側を `None` とし，過去の座標を検出結果として返さない．元のフレーム取得時刻は未検出時も保持する．実行エラーは呼び出し元へ伝える．
+- 単独検証には `scripts/check_hand_detection.py` を使用する．静止画像を読み込み，検出結果をJSONで出力する．カメラ表示への結合は #8 で行う．
 
 ## 8. 未決定・検証事項
 
