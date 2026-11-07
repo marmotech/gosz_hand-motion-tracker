@@ -168,6 +168,8 @@ calculator = MotionCalculator(retention_ms=100.0)
 motion = calculator.calculate(detection)
 ```
 
+単独の動作確認には `scripts/check_motion_calculation.py` を使用する．サンプルの全21点の位置・取得時刻を本体の `MotionCalculator` に渡し，指定した点の入力位置・速度・加速度を表で表示する．初期表示は手首で，`--landmark` と `--retention-ms` で表示対象と保持時間を変更できる．短時間の未検出からの復帰，保持時間超過によるリセット，左右別の計算を確認する．実行手順と見るべき結果はREADMEに記載する．画面表示とカメラ処理への結合は #8 で行う．
+
 ## 8. 未決定・検証事項
 
 - 使用するカメラの選定，撮影タイムスタンプを取得できるか
