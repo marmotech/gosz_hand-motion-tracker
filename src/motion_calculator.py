@@ -3,9 +3,9 @@
 from dataclasses import dataclass
 import math
 
-from detection_types import DetectionResult, HandLandmarks
-from geometry_types import Vector2D
-from motion_types import HandMotion, LandmarkMotion, MotionResult
+from data_types.detection import DetectionResult, HandLandmarks
+from data_types.geometry import Vector2D
+from data_types.motion import HandMotion, LandmarkMotion, MotionResult
 
 
 def _validate_timestamp_ns(timestamp_ns: int) -> None:

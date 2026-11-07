@@ -6,8 +6,8 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from detection_types import DetectionResult, HandLandmark, HandLandmarks
-from geometry_types import Point2D, Vector2D
+from data_types.detection import DetectionResult, HandLandmark, HandLandmarks
+from data_types.geometry import Point2D, Vector2D
 from motion_calculator import MotionCalculator
 
 

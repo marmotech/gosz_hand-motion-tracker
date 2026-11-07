@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from geometry_types import Point2D, Vector2D
+from .geometry import Point2D, Vector2D
 
 
 @dataclass(frozen=True)

@@ -8,20 +8,12 @@ Example:
                 break
 """
 
-from dataclasses import dataclass
 import time
 from typing import Iterator
 
 import cv2
-import numpy as np
 
-
-@dataclass(frozen=True)
-class CapturedFrame:
-    """A BGR camera frame and its capture-read completion time."""
-
-    image: np.ndarray
-    timestamp_ns: int
+from data_types.camera import CapturedFrame
 
 
 class CameraCapture:

@@ -110,7 +110,7 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 ### 検出結果のデータ構造（Issue #6）
 
-位置・ベクトルの共通型 `Point2D` と `Vector2D` は `src/geometry_types.py` に置く．検出結果の定義は `src/detection_types.py` に置き，検出・計算・表示処理からimportして利用する．
+共通型は `src/data_types/` にまとめる．位置・ベクトルの `Point2D` と `Vector2D` は `geometry.py`，検出結果は `detection.py` に置き，検出・計算・表示処理からimportして利用する．カメラ画像と取得時刻をまとめた `CapturedFrame` は `camera.py` に定義する．
 
 | 型 | 項目・意味 |
 |---|---|
@@ -137,12 +137,12 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 ### 運動計算（Issue #7）
 
-共通の位置・ベクトル型は `src/geometry_types.py` から利用し，運動計算は次の2ファイルに置く．
+共通の位置・ベクトル型は `src/data_types/geometry.py` から利用し，運動計算は次の2ファイルに置く．
 
-- `src/motion_types.py`：計算・表示が共有する結果型を定義する．
+- `src/data_types/motion.py`：計算・表示が共有する結果型を定義する．
 - `src/motion_calculator.py`：`MotionCalculator` が左右別に前回の結果と時刻を保持し，期限内の前回値を選んで同じファイル内の非公開関数 `_calculate_hand_motion` へ渡す．この関数が位置・速度と取得時刻の差分から全21点の速度・加速度を計算する．
 
-`src/motion_calculator.py` の `MotionCalculator.calculate(detection)` に `DetectionResult` を渡し，`src/motion_types.py` の `MotionResult` を受け取る．カメラ・MediaPipeには依存せず，ダミー座標でも利用できる．同じ計測系列では同じインスタンスを使い続け，新しい系列を始める場合はインスタンスを作り直す．
+`src/motion_calculator.py` の `MotionCalculator.calculate(detection)` に `DetectionResult` を渡し，`src/data_types/motion.py` の `MotionResult` を受け取る．カメラ・MediaPipeには依存せず，ダミー座標でも利用できる．同じ計測系列では同じインスタンスを使い続け，新しい系列を始める場合はインスタンスを作り直す．
 
 | 型 | 項目・意味 |
 |---|---|

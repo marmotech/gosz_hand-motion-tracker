@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from enum import IntEnum
 
-from geometry_types import Point2D
+from .geometry import Point2D
 
 
 class HandLandmark(IntEnum):
