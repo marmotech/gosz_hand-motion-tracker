@@ -52,6 +52,12 @@ def main() -> int:
         (240, 23.0, -23.0),
         (260, 25.0, -25.0),
         (280, 27.0, -27.0),
+        # Non-finite left-hand inputs are rejected without refreshing history.
+        (300, float("nan"), -29.0),
+        (320, 31.0, -31.0),
+        (340, float("inf"), -33.0),
+        (400, -float("inf"), -39.0),
+        (430, 42.0, -42.0),
     ]
     print(f"Landmark: {landmark.name}; retention: {args.retention_ms:g} ms")
     print("Synthetic input; all 21 landmarks are calculated. Vectors are (x, y).")

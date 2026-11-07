@@ -69,6 +69,7 @@ class MotionCalculator:
     Pass every DetectionResult, including frames with no hands. Timestamps must
     strictly increase. This class selects and retains previous observations;
     _calculate_hand_motion handles the numerical differences without state.
+    A hand containing non-finite x/y coordinates is treated as missing.
     No missing observations are interpolated.
     """
 
@@ -108,6 +109,11 @@ class MotionCalculator:
         if history is not None and timestamp_ns - history.timestamp_ns > self._retention_ns:
             history = None
         if hand is None:
+            return None, history
+        if any(
+            not math.isfinite(point.x) or not math.isfinite(point.y)
+            for point in hand.landmarks
+        ):
             return None, history
 
         motion = _calculate_hand_motion(
