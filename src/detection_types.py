@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from enum import IntEnum
 
+from geometry_types import Point2D
+
 
 class HandLandmark(IntEnum):
     """Names for all 21 indices in MediaPipe landmark order."""
@@ -28,14 +30,6 @@ class HandLandmark(IntEnum):
     PINKY_PIP = 18
     PINKY_DIP = 19
     PINKY_TIP = 20
-
-
-@dataclass(frozen=True)
-class Point2D:
-    """Input-image position in floating-point px; x right, y down from top left."""
-
-    x: float
-    y: float
 
 
 @dataclass(frozen=True)

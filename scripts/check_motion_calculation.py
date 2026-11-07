@@ -6,9 +6,9 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from detection_types import DetectionResult, HandLandmark, HandLandmarks, Point2D
+from detection_types import DetectionResult, HandLandmark, HandLandmarks
+from geometry_types import Point2D, Vector2D
 from motion_calculator import MotionCalculator
-from motion_types import Vector2D
 
 
 def make_hand(offset: float | None) -> HandLandmarks | None:

@@ -110,7 +110,7 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 ### 検出結果のデータ構造（Issue #6）
 
-共通定義は `src/detection_types.py` に置き，検出・計算・表示処理からimportして利用する．
+位置・ベクトルの共通型 `Point2D` と `Vector2D` は `src/geometry_types.py` に置く．検出結果の定義は `src/detection_types.py` に置き，検出・計算・表示処理からimportして利用する．
 
 | 型 | 項目・意味 |
 |---|---|
@@ -137,7 +137,7 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 ### 運動計算（Issue #7）
 
-責務は次の3つに分ける．
+共通の位置・ベクトル型は `src/geometry_types.py` から利用し，運動計算の責務は次の3つに分ける．
 
 - `src/motion_types.py`：計算・表示が共有する結果型を定義する．
 - `src/motion_calculation.py`：`calculate_hand_motion(hand, timestamp_ns, previous, previous_timestamp_ns)` が，渡された位置・前回結果・取得時刻から差分を計算する．前回結果とその時刻は対で渡し，初回は両方を省略する．関数は履歴を保持せず，保持時間による期限切れも判断しない．

@@ -1,7 +1,8 @@
 """Stateless differences of landmark positions and velocities."""
 
 from detection_types import HandLandmarks
-from motion_types import HandMotion, LandmarkMotion, Vector2D
+from geometry_types import Vector2D
+from motion_types import HandMotion, LandmarkMotion
 
 
 def validate_timestamp_ns(timestamp_ns: int) -> None:

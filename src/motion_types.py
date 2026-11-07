@@ -2,15 +2,7 @@
 
 from dataclasses import dataclass
 
-from detection_types import Point2D
-
-
-@dataclass(frozen=True)
-class Vector2D:
-    """x/y components of velocity (px/s) or acceleration (px/s²)."""
-
-    x: float
-    y: float
+from geometry_types import Point2D, Vector2D
 
 
 @dataclass(frozen=True)
