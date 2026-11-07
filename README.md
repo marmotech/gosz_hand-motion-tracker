@@ -1,16 +1,5 @@
 # gosz_hand-motion-tracker
 
-## 運動計算の単独検証
-
-左右各手の全21点の速度・加速度の計算は，カメラやモデルなしで検証できる．
-開発環境を構築した後，リポジトリのルートで実行する．
-
-```console
-uv run --locked python -m unittest discover -s tests -v
-```
-
-利用方法・単位・履歴保持の仕様は[設計書の運動計算](docs/design.md#運動計算issue-7)を参照する．
-
 MediaPipeでピアノ演奏中の手・指の動きを解析するためのプロジェクト。
 
 ## 使用するバージョン

@@ -168,14 +168,6 @@ calculator = MotionCalculator(retention_ms=100.0)
 motion = calculator.calculate(detection)
 ```
 
-カメラを使わない検証：
-
-```console
-uv run --locked python -m unittest discover -s tests -v
-```
-
-全21点の異なる変位，変動する観測間隔，整数nsの大きな時刻，静止，左右別の履歴，未検出・再検出，保持時間の境界・設定変更，不正な入力を検証する．画面表示とカメラ処理への結合は #8 で行う．
-
 ## 8. 未決定・検証事項
 
 - 使用するカメラの選定，撮影タイムスタンプを取得できるか
