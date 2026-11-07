@@ -7,8 +7,9 @@ import mediapipe as mp
 from mediapipe.tasks.python import BaseOptions, vision
 from mediapipe.tasks.python.components.containers.landmark import NormalizedLandmark
 
-from camera import CapturedFrame
-from detection_types import DetectionResult, HandLandmarks, Point2D
+from data_types.camera import CapturedFrame
+from data_types.detection import DetectionResult, HandLandmarks
+from data_types.geometry import Point2D
 
 
 MODEL_PATH = Path(__file__).resolve().parents[1] / "models" / "hand_landmarker.task"

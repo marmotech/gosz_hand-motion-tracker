@@ -11,7 +11,7 @@ import cv2
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from camera import CapturedFrame
+from data_types.camera import CapturedFrame
 from hand_detector import HandDetector
 
 
