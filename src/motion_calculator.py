@@ -19,13 +19,14 @@ def _calculate_hand_motion(
     timestamp_ns: int,
     previous: HandMotion | None = None,
     previous_timestamp_ns: int | None = None,
+    previous_interval_ns: int | None = None,
 ) -> HandMotion:
     """Calculate 21 points without keeping history or deciding its expiration.
 
     Supply both previous arguments or neither. With no previous observation,
     return positions with unavailable derivatives. Otherwise use actual capture
-    time differences; previous velocities belong to previous_timestamp_ns.
-    Current velocities belong to timestamp_ns, not the interval midpoint.
+    time differences. Velocities are interval averages. Acceleration uses the
+    time between the midpoints of the previous and current velocity intervals.
     """
     _validate_timestamp_ns(timestamp_ns)
     if (previous is None) != (previous_timestamp_ns is None):
@@ -36,7 +37,8 @@ def _calculate_hand_motion(
     _validate_timestamp_ns(previous_timestamp_ns)
     if timestamp_ns <= previous_timestamp_ns:
         raise ValueError("Capture timestamps must strictly increase")
-    dt = (timestamp_ns - previous_timestamp_ns) / 1_000_000_000
+    interval_ns = timestamp_ns - previous_timestamp_ns
+    dt = interval_ns / 1_000_000_000
     points = []
     for position, prior in zip(hand.landmarks, previous.landmarks, strict=True):
         velocity = Vector2D(
@@ -44,10 +46,11 @@ def _calculate_hand_motion(
             y=(position.y - prior.position.y) / dt,
         )
         acceleration = None
-        if prior.velocity is not None:
+        if prior.velocity is not None and previous_interval_ns is not None:
+            acceleration_dt = (previous_interval_ns + interval_ns) / 2_000_000_000
             acceleration = Vector2D(
-                x=(velocity.x - prior.velocity.x) / dt,
-                y=(velocity.y - prior.velocity.y) / dt,
+                x=(velocity.x - prior.velocity.x) / acceleration_dt,
+                y=(velocity.y - prior.velocity.y) / acceleration_dt,
             )
         points.append(LandmarkMotion(position, velocity, acceleration))
     return HandMotion(tuple(points))
@@ -57,6 +60,7 @@ def _calculate_hand_motion(
 class _HandHistory:
     timestamp_ns: int
     motion: HandMotion
+    interval_ns: int | None
 
 
 class MotionCalculator:
@@ -111,5 +115,9 @@ class MotionCalculator:
             timestamp_ns,
             previous=history.motion if history is not None else None,
             previous_timestamp_ns=history.timestamp_ns if history is not None else None,
+            previous_interval_ns=history.interval_ns if history is not None else None,
         )
-        return motion, _HandHistory(timestamp_ns=timestamp_ns, motion=motion)
+        interval_ns = timestamp_ns - history.timestamp_ns if history is not None else None
+        return motion, _HandHistory(
+            timestamp_ns=timestamp_ns, motion=motion, interval_ns=interval_ns
+        )
