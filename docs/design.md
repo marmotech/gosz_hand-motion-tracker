@@ -1,7 +1,7 @@
 # 設計書（初版）
 
 > 対象：カメラ映像から手・指の位置・速度・加速度を取得する機能  
-> 状態：実装に合わせて更新する設計方針．検出結果の共通型は定義済み．
+> 状態：実装に合わせて更新する設計方針．検出結果・運動計算結果の共通型は定義済み．
 > 根拠：[Issue #4](https://github.com/marmotech/gosz_hand-motion-tracker/issues/4) と共通仕様①〜⑥の決定コメント．
 
 ## 1. 目的と対象範囲
@@ -135,10 +135,51 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 - 未検出はそのフレームの該当側を `None` とし，過去の座標を検出結果として返さない．元のフレーム取得時刻は未検出時も保持する．実行エラーは呼び出し元へ伝える．
 - 単独検証には `scripts/check_hand_detection.py` を使用する．静止画像を読み込み，検出結果をJSONで出力する．カメラ表示への結合は #8 で行う．
 
+### 運動計算（Issue #7）
+
+責務は次の3つに分ける．
+
+- `src/motion_types.py`：計算・表示が共有する結果型を定義する．
+- `src/motion_calculation.py`：`calculate_hand_motion(hand, timestamp_ns, previous, previous_timestamp_ns)` が，渡された位置・前回結果・取得時刻から差分を計算する．前回結果とその時刻は対で渡し，初回は両方を省略する．関数は履歴を保持せず，保持時間による期限切れも判断しない．
+- `src/motion_calculator.py`：`MotionCalculator` が左右別に前回の結果と時刻を保持し，期限内の前回値を選んで差分計算関数へ渡す．
+
+`src/motion_calculator.py` の `MotionCalculator.calculate(detection)` に `DetectionResult` を渡し，`src/motion_types.py` の `MotionResult` を受け取る．カメラ・MediaPipeには依存せず，ダミー座標でも利用できる．同じ計測系列では同じインスタンスを使い続け，新しい系列を始める場合はインスタンスを作り直す．
+
+| 型 | 項目・意味 |
+|---|---|
+| `Vector2D` | `x: float`, `y: float`．速度はpx/s，加速度はpx/s² |
+| `LandmarkMotion` | `position: Point2D`, `velocity: Vector2D \| None`, `acceleration: Vector2D \| None` |
+| `HandMotion` | `landmarks: tuple[LandmarkMotion, ...]`．MediaPipe順の全21点 |
+| `MotionResult` | 元の `timestamp_ns`，`left: HandMotion \| None`，`right: HandMotion \| None` |
+
+各結果は `frozen=True` のdataclassとする．例えば `result.left.landmarks[HandLandmark.WRIST].velocity.x` は左手首のx方向速度を表す．参照前に `left` と `velocity` が `None` でないことを確認する．
+
+- 速度は直前の有効な位置との差分を対応する取得時刻の差で割る．速度を現在のフレーム取得時刻に対応付け，加速度は前回の有効な速度との差を，両速度に対応する取得時刻の差で割る．区間の中点時刻は使用しない．
+- 初回は速度・加速度が `None`，2回目は速度のみ計算でき，3回目以降は加速度も計算できる．静止時の計算結果はゼロベクトルとなる．
+- 未検出フレームも毎回渡す．今回未検出の側は結果を `None` とし，履歴のみ保持する．最後の検出からの差が保持時間以内なら再利用し，超過すれば破棄する．未検出フレームを挟まない場合でも同じしきい値を適用する．
+- 保持時間は `MotionCalculator(retention_ms=100.0)` で設定する．境界値ちょうどは保持し，0は次フレームへ履歴を持ち越さない設定となる．負数・非有限値は `ValueError` とする．
+- 取得時刻は整数nsで単調増加する必要がある．重複・逆行・整数以外は履歴を変更する前に `ValueError` とする．差分を整数nsで取ってから秒へ変換する．
+
+```python
+from motion_calculator import MotionCalculator
+
+calculator = MotionCalculator(retention_ms=100.0)
+# 各フレームで，既存の検出処理が返した結果を渡す．
+motion = calculator.calculate(detection)
+```
+
+カメラを使わない検証：
+
+```console
+uv run --locked python -m unittest discover -s tests -v
+```
+
+全21点の異なる変位，変動する観測間隔，整数nsの大きな時刻，静止，左右別の履歴，未検出・再検出，保持時間の境界・設定変更，不正な入力を検証する．画面表示とカメラ処理への結合は #8 で行う．
+
 ## 8. 未決定・検証事項
 
 - 使用するカメラの選定，撮影タイムスタンプを取得できるか
-- 運動計算結果の `dataclass` の構成と，全体統合時のインターフェース調整
+- 全体統合時のインターフェース調整
 - 100msの保持時間が実際のフレームレート・検出品質に適切か
 - 検出失敗後の再検出における手の取り違えなど，独自追跡をしないことによる制約
 - 画面上の数値配置など，表示UIの詳細
