@@ -4,8 +4,53 @@ from dataclasses import dataclass
 import math
 
 from detection_types import DetectionResult, HandLandmarks
-from motion_calculation import calculate_hand_motion, validate_timestamp_ns
-from motion_types import HandMotion, MotionResult
+from geometry_types import Vector2D
+from motion_types import HandMotion, LandmarkMotion, MotionResult
+
+
+def _validate_timestamp_ns(timestamp_ns: int) -> None:
+    """Require integer capture times before computing differences or saving state."""
+    if not isinstance(timestamp_ns, int) or isinstance(timestamp_ns, bool):
+        raise ValueError("timestamp_ns must be an integer number of nanoseconds")
+
+
+def _calculate_hand_motion(
+    hand: HandLandmarks,
+    timestamp_ns: int,
+    previous: HandMotion | None = None,
+    previous_timestamp_ns: int | None = None,
+) -> HandMotion:
+    """Calculate 21 points without keeping history or deciding its expiration.
+
+    Supply both previous arguments or neither. With no previous observation,
+    return positions with unavailable derivatives. Otherwise use actual capture
+    time differences; previous velocities belong to previous_timestamp_ns.
+    Current velocities belong to timestamp_ns, not the interval midpoint.
+    """
+    _validate_timestamp_ns(timestamp_ns)
+    if (previous is None) != (previous_timestamp_ns is None):
+        raise ValueError("Previous motion and its capture timestamp must be supplied together")
+    if previous is None:
+        return HandMotion(tuple(LandmarkMotion(position) for position in hand.landmarks))
+
+    _validate_timestamp_ns(previous_timestamp_ns)
+    if timestamp_ns <= previous_timestamp_ns:
+        raise ValueError("Capture timestamps must strictly increase")
+    dt = (timestamp_ns - previous_timestamp_ns) / 1_000_000_000
+    points = []
+    for position, prior in zip(hand.landmarks, previous.landmarks, strict=True):
+        velocity = Vector2D(
+            x=(position.x - prior.position.x) / dt,
+            y=(position.y - prior.position.y) / dt,
+        )
+        acceleration = None
+        if prior.velocity is not None:
+            acceleration = Vector2D(
+                x=(velocity.x - prior.velocity.x) / dt,
+                y=(velocity.y - prior.velocity.y) / dt,
+            )
+        points.append(LandmarkMotion(position, velocity, acceleration))
+    return HandMotion(tuple(points))
 
 
 @dataclass(frozen=True)
@@ -19,7 +64,7 @@ class MotionCalculator:
 
     Pass every DetectionResult, including frames with no hands. Timestamps must
     strictly increase. This class selects and retains previous observations;
-    calculate_hand_motion handles the numerical differences without state.
+    _calculate_hand_motion handles the numerical differences without state.
     No missing observations are interpolated.
     """
 
@@ -39,7 +84,7 @@ class MotionCalculator:
         missing frame was passed. Exactly retention_ms is still retained.
         """
         timestamp_ns = detection.timestamp_ns
-        validate_timestamp_ns(timestamp_ns)
+        _validate_timestamp_ns(timestamp_ns)
         if self._last_timestamp_ns is not None and timestamp_ns <= self._last_timestamp_ns:
             raise ValueError("Capture timestamps must strictly increase")
 
@@ -61,7 +106,7 @@ class MotionCalculator:
         if hand is None:
             return None, history
 
-        motion = calculate_hand_motion(
+        motion = _calculate_hand_motion(
             hand,
             timestamp_ns,
             previous=history.motion if history is not None else None,

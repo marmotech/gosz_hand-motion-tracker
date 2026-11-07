@@ -137,11 +137,10 @@ dt = (current_timestamp_ns - previous_timestamp_ns) / 1_000_000_000
 
 ### 運動計算（Issue #7）
 
-共通の位置・ベクトル型は `src/geometry_types.py` から利用し，運動計算の責務は次の3つに分ける．
+共通の位置・ベクトル型は `src/geometry_types.py` から利用し，運動計算は次の2ファイルに置く．
 
 - `src/motion_types.py`：計算・表示が共有する結果型を定義する．
-- `src/motion_calculation.py`：`calculate_hand_motion(hand, timestamp_ns, previous, previous_timestamp_ns)` が，渡された位置・前回結果・取得時刻から差分を計算する．前回結果とその時刻は対で渡し，初回は両方を省略する．関数は履歴を保持せず，保持時間による期限切れも判断しない．
-- `src/motion_calculator.py`：`MotionCalculator` が左右別に前回の結果と時刻を保持し，期限内の前回値を選んで差分計算関数へ渡す．
+- `src/motion_calculator.py`：`MotionCalculator` が左右別に前回の結果と時刻を保持し，期限内の前回値を選んで同じファイル内の非公開関数 `_calculate_hand_motion` へ渡す．この関数が位置・速度と取得時刻の差分から全21点の速度・加速度を計算する．
 
 `src/motion_calculator.py` の `MotionCalculator.calculate(detection)` に `DetectionResult` を渡し，`src/motion_types.py` の `MotionResult` を受け取る．カメラ・MediaPipeには依存せず，ダミー座標でも利用できる．同じ計測系列では同じインスタンスを使い続け，新しい系列を始める場合はインスタンスを作り直す．
 
